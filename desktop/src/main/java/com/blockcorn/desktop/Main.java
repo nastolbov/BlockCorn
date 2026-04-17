@@ -1,6 +1,7 @@
 package com.blockcorn.desktop;
 
 import javax.swing.*;
+import java.awt.SystemTray;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -60,15 +61,20 @@ public final class Main {
         // Schedule daily blocklist refresh
         new Thread(() -> dailyRefreshLoop(fetcher, state), "blockcorn-refresh").start();
 
-        // Start tray on AWT thread
+        // Start tray + main window on AWT thread
         SwingUtilities.invokeLater(() -> {
+            TrayApp tray = null;
             try {
-                new TrayApp(state).init();
-                System.out.println("[Main] System tray ready");
+                if (SystemTray.isSupported()) {
+                    tray = new TrayApp(state);
+                    tray.init();
+                    System.out.println("[Main] System tray ready");
+                }
             } catch (Exception e) {
                 System.err.println("[Main] Tray init failed: " + e.getMessage());
-                System.exit(1);
             }
+            // Always open main window so the user has a visible UI
+            SettingsUI.show(state, tray);
         });
     }
 
