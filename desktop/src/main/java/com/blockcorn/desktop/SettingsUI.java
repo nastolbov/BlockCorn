@@ -41,9 +41,13 @@ public final class SettingsUI {
                 return;
             }
             frame = buildFrame(state, tray);
+            frame.pack();
+            frame.setSize(400, 560);
+            frame.setLocationRelativeTo(null);
             frame.setVisible(true);
             frame.toFront();
-            frame.requestFocus();
+            frame.requestFocusInWindow();
+            System.out.println("[SettingsUI] setVisible(true) called");
         });
     }
 
@@ -54,7 +58,6 @@ public final class SettingsUI {
         f.setSize(400, 560);
         f.setLocationRelativeTo(null);
         f.setResizable(false);
-        f.setAlwaysOnTop(true);
         f.getContentPane().setBackground(BG);
 
         JPanel root = new JPanel();

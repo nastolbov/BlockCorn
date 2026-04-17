@@ -18,10 +18,12 @@ import java.util.List;
 public final class Main {
 
     public static void main(String[] args) throws Exception {
-        // macOS: make window appear in foreground and show in dock
+        // These must be set before AWT initializes
         System.setProperty("apple.awt.UIElement", "false");
         System.setProperty("apple.laf.useScreenMenuBar", "true");
-        System.setProperty("com.apple.mrj.application.apple.menu.about.name", "BlockCorn");
+
+        // Force AWT toolkit init on the main thread (required on macOS)
+        java.awt.Toolkit.getDefaultToolkit();
 
         // Swing look-and-feel
         try {
@@ -36,19 +38,26 @@ public final class Main {
         Path dataDir = dataDir();
         BlocklistFetcher fetcher = new BlocklistFetcher(dataDir);
 
-        // Open window immediately — don't wait for network
-        SwingUtilities.invokeLater(() -> {
-            TrayApp tray = null;
-            try {
-                if (SystemTray.isSupported()) {
-                    tray = new TrayApp(state);
-                    tray.init();
+        // Open window — use invokeAndWait so it's guaranteed to appear before background work starts
+        System.out.println("[Main] Opening window…");
+        try {
+            SwingUtilities.invokeAndWait(() -> {
+                TrayApp tray = null;
+                try {
+                    if (SystemTray.isSupported()) {
+                        tray = new TrayApp(state);
+                        tray.init();
+                    }
+                } catch (Exception e) {
+                    System.err.println("[Main] Tray init failed: " + e.getMessage());
                 }
-            } catch (Exception e) {
-                System.err.println("[Main] Tray init failed: " + e.getMessage());
-            }
-            SettingsUI.show(state, tray);
-        });
+                SettingsUI.show(state, tray);
+                System.out.println("[Main] Window created");
+            });
+        } catch (Exception e) {
+            System.err.println("[Main] Window error: " + e.getMessage());
+            e.printStackTrace();
+        }
 
         // Load blocklist in background — apply hosts once ready
         new Thread(() -> {
