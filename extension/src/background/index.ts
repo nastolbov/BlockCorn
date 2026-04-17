@@ -1,5 +1,5 @@
 import { fetchAndCacheBlocklist, getBlocklist } from './blocklist'
-import { applyBlocklistRules, clearAllRules, isEnabled } from './blocker'
+import { applyBlocklistRules, clearAllRules, isEnabled, setEnabled } from './blocker'
 
 const ALARM_NAME = 'blocklist-update'
 
@@ -75,6 +75,37 @@ chrome.runtime.onMessage.addListener((msg, _sender, respond) => {
 
   if (msg.type === 'FORCE_REFRESH') {
     refreshBlocklist().then(() => respond({ ok: true }))
+    return true
+  }
+
+  if (msg.type === 'GET_SETTINGS') {
+    ;(async () => {
+      const result = await chrome.storage.local.get([
+        'blocker_enabled',
+        'trigger_threshold',
+        'image_classification',
+      ])
+      respond({
+        enabled:             result['blocker_enabled'] !== false,
+        triggerThreshold:    result['trigger_threshold'] ?? 5,
+        imageClassification: result['image_classification'] === true,
+      })
+    })()
+    return true
+  }
+
+  if (msg.type === 'SET_SETTINGS') {
+    const { triggerThreshold, imageClassification } = msg
+    chrome.storage.local
+      .set({ trigger_threshold: triggerThreshold, image_classification: imageClassification })
+      .then(() => respond({ ok: true }))
+    return true
+  }
+
+  if (msg.type === 'REQUEST_UNLOCK') {
+    // Log the request; a future build can email the accountability contact
+    console.log('[BlockCorn] Unlock requested for domain:', msg.domain)
+    respond({ ok: true })
     return true
   }
 })

@@ -146,7 +146,42 @@
 
   <div class="action-row">
     <button id="btn-refresh">↻ Обновить список</button>
-    <button id="btn-settings">⚙ Настройки</button>
+    <button id="btn-advanced">⚙ Настройки</button>
+  </div>
+
+  <!-- Advanced settings panel (hidden by default) -->
+  <div id="advanced-panel" style="display:none;margin-top:12px;">
+    <hr style="border:none;border-top:1px solid var(--border);margin-bottom:12px;" />
+
+    <div style="margin-bottom:10px;">
+      <div style="font-size:.8rem;color:var(--muted);margin-bottom:4px;">
+        Порог триггер-слов (1–50)
+      </div>
+      <input id="threshold-input" type="number" min="1" max="50" value="5"
+        style="width:60px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);
+               background:var(--bg);color:var(--text);font-size:.85rem;" />
+      <span style="font-size:.75rem;color:var(--muted);margin-left:6px;">
+        совпадений → редирект
+      </span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <label class="toggle" style="flex-shrink:0;">
+        <input type="checkbox" id="toggle-img" />
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+      <div>
+        <div style="font-size:.85rem;font-weight:600;">Классификация изображений</div>
+        <div style="font-size:.72rem;color:var(--muted);">nsfwjs — скрывает NSFW картинки (≈3 МБ)</div>
+      </div>
+    </div>
+
+    <button id="btn-save-settings"
+      style="width:100%;padding:8px;border-radius:8px;background:var(--accent);
+             border:none;color:#fff;font-size:.85rem;font-weight:600;cursor:pointer;">
+      Сохранить
+    </button>
   </div>
 
   <div id="footer"></div>

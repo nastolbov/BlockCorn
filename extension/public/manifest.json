@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "BlockCorn",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Adult content blocker — accountability mode enabled",
 
   "permissions": [
@@ -13,12 +13,25 @@
     "tabs",
     "webNavigation"
   ],
-  "host_permissions": ["<all_urls>"],
+  "host_permissions": [
+    "<all_urls>",
+    "https://nsfwjs.com/",
+    "https://cdn.jsdelivr.net/"
+  ],
 
   "background": {
     "service_worker": "background/index.js",
     "type": "module"
   },
+
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content/index.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
 
   "action": {
     "default_popup": "popup/index.html",

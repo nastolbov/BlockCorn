@@ -1,25 +1,27 @@
 import { defineConfig } from 'vite'
 import { resolve } from 'path'
-import { copyFileSync, existsSync, mkdirSync, renameSync, rmSync } from 'fs'
+import { copyFileSync, existsSync, mkdirSync } from 'fs'
 
 const src = resolve(__dirname, 'src')
 
 export default defineConfig({
-  // Set root to src/ so HTML paths output as blocked/ and popup/ (not src/blocked/)
   root: src,
   build: {
     outDir: resolve(__dirname, 'dist'),
     emptyOutDir: true,
     minify: false,
+    // Keep content script chunks small by not inlining dynamic imports
     rollupOptions: {
       input: {
         background: resolve(src, 'background/index.ts'),
-        popup: resolve(src, 'popup/index.html'),
-        blocked: resolve(src, 'blocked/index.html'),
+        content:    resolve(src, 'content/index.ts'),
+        popup:      resolve(src, 'popup/index.html'),
+        blocked:    resolve(src, 'blocked/index.html'),
       },
       output: {
         entryFileNames: (chunk) => {
           if (chunk.name === 'background') return 'background/index.js'
+          if (chunk.name === 'content')    return 'content/index.js'
           return 'assets/[name]-[hash].js'
         },
         chunkFileNames: 'chunks/[name]-[hash].js',
