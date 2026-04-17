@@ -4,6 +4,7 @@ import com.blockcorn.core.PinManager;
 
 import javax.swing.*;
 import java.awt.*;
+import java.nio.file.Path;
 import java.util.prefs.BackingStoreException;
 
 /**
@@ -95,8 +96,68 @@ public final class SettingsUI {
             JOptionPane.showMessageDialog(frame, "Автозапуск настроен.", "BlockCorn", JOptionPane.INFORMATION_MESSAGE);
         });
         panel.add(autoStartBtn);
+        panel.add(Box.createVerticalStrut(8));
+
+        // Service install row
+        JPanel serviceRow = new JPanel(new GridLayout(1, 2, 8, 0));
+        serviceRow.setBackground(new Color(15, 15, 19));
+        serviceRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        serviceRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+
+        JButton installBtn = styledButton("Установить службу");
+        installBtn.addActionListener(e -> installService(frame));
+
+        JButton uninstallBtn = styledButton("Удалить службу");
+        uninstallBtn.setBackground(new Color(80, 20, 20));
+        uninstallBtn.addActionListener(e -> uninstallService(frame));
+
+        serviceRow.add(installBtn);
+        serviceRow.add(uninstallBtn);
+        panel.add(serviceRow);
 
         return panel;
+    }
+
+    private static void installService(JFrame frame) {
+        try {
+            String cp = System.getProperty("java.class.path", "");
+            String mainJar = cp.isEmpty() ? "blockcorn-desktop.jar" : cp.split(java.io.File.pathSeparator)[0];
+            String wdJar   = mainJar.replace("desktop", "watchdog");
+            String os = System.getProperty("os.name", "").toLowerCase();
+            if (os.contains("win")) {
+                ServiceInstaller.installWindows(mainJar, wdJar);
+            } else if (os.contains("mac")) {
+                ServiceInstaller.installMac(mainJar, wdJar);
+            } else {
+                JOptionPane.showMessageDialog(frame, "Служба поддерживается только на Windows и macOS.",
+                    "BlockCorn", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+            JOptionPane.showMessageDialog(frame, "Служба установлена. BlockCorn будет запускаться при загрузке системы.",
+                "BlockCorn", JOptionPane.INFORMATION_MESSAGE);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(frame, "Ошибка установки: " + ex.getMessage(),
+                "Ошибка", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private static void uninstallService(JFrame frame) {
+        int confirm = JOptionPane.showConfirmDialog(frame,
+            "Удалить BlockCorn из автозапуска системы?", "BlockCorn",
+            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (confirm != JOptionPane.YES_OPTION) return;
+        try {
+            String os = System.getProperty("os.name", "").toLowerCase();
+            if (os.contains("win")) {
+                ServiceInstaller.uninstallWindows();
+            } else if (os.contains("mac")) {
+                ServiceInstaller.uninstallMac();
+            }
+            JOptionPane.showMessageDialog(frame, "Служба удалена.", "BlockCorn", JOptionPane.INFORMATION_MESSAGE);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(frame, "Ошибка удаления: " + ex.getMessage(),
+                "Ошибка", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private static JButton styledButton(String text) {

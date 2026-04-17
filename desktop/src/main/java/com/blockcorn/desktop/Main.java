@@ -28,6 +28,10 @@ public final class Main {
             System.setProperty("apple.awt.UIElement", "true");
         }
 
+        // Write PID so external watchdog can monitor this process
+        PidFile.write();
+        Runtime.getRuntime().addShutdownHook(new Thread(PidFile::delete, "blockcorn-pid-cleanup"));
+
         AppState state = new AppState();
 
         // Data/cache directory

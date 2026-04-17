@@ -27,6 +27,7 @@ test {
 }
 
 jar {
+    archiveBaseName = 'blockcorn-desktop'
     manifest {
         attributes 'Main-Class': application.mainClass
     }
@@ -34,3 +35,18 @@ jar {
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
+
+// Separate fat JAR for the external watchdog process
+tasks.register('watchdogJar', Jar) {
+    group = 'build'
+    description = 'Builds the standalone watchdog fat JAR'
+    archiveBaseName = 'blockcorn-watchdog'
+    manifest {
+        attributes 'Main-Class': 'com.blockcorn.desktop.WatchdogMain'
+    }
+    from sourceSets.main.output
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+assemble.dependsOn watchdogJar
