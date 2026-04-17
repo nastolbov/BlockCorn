@@ -18,6 +18,11 @@ import java.util.List;
 public final class Main {
 
     public static void main(String[] args) throws Exception {
+        // macOS: make window appear in foreground and show in dock
+        System.setProperty("apple.awt.UIElement", "false");
+        System.setProperty("apple.laf.useScreenMenuBar", "true");
+        System.setProperty("com.apple.mrj.application.apple.menu.about.name", "BlockCorn");
+
         // Swing look-and-feel
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());

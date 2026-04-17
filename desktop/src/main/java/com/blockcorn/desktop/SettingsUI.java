@@ -35,21 +35,26 @@ public final class SettingsUI {
     public static void show(AppState state, TrayApp tray) {
         SwingUtilities.invokeLater(() -> {
             if (frame != null && frame.isDisplayable()) {
+                frame.setVisible(true);
                 frame.toFront();
                 frame.requestFocus();
                 return;
             }
             frame = buildFrame(state, tray);
             frame.setVisible(true);
+            frame.toFront();
+            frame.requestFocus();
         });
     }
 
     private static JFrame buildFrame(AppState state, TrayApp tray) {
         JFrame f = new JFrame("BlockCorn");
-        f.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+        // EXIT_ON_CLOSE so the process ends when window is closed (no tray on macOS by default)
+        f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         f.setSize(400, 560);
         f.setLocationRelativeTo(null);
         f.setResizable(false);
+        f.setAlwaysOnTop(true);
         f.getContentPane().setBackground(BG);
 
         JPanel root = new JPanel();
