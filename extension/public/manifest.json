@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "BlockCorn",
+  "version": "0.1.0",
+  "description": "Adult content blocker — accountability mode enabled",
+
+  "permissions": [
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback",
+    "declarativeNetRequestWithHostAccess",
+    "storage",
+    "alarms",
+    "tabs",
+    "webNavigation"
+  ],
+  "host_permissions": ["<all_urls>"],
+
+  "background": {
+    "service_worker": "background/index.js",
+    "type": "module"
+  },
+
+  "action": {
+    "default_popup": "popup/index.html",
+    "default_title": "BlockCorn"
+  },
+
+  "declarative_net_request": {
+    "rule_resources": []
+  },
+
+  "web_accessible_resources": [
+    {
+      "resources": ["blocked/index.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+[package]
+name = "blockcorn"
+version = "0.1.0"
+edition = "2021"
+description = "BlockCorn desktop service — hosts blocker + tray"
+default-run = "blockcorn"
+
+[[bin]]
+name = "blockcorn"
+path = "src/main.rs"
+
+[dependencies]
+tauri          = { version = "2", features = ["tray-icon", "image-png"] }
+serde          = { version = "1", features = ["derive"] }
+serde_json     = "1"
+anyhow         = "1"
+bcrypt         = "0.15"
+chrono         = { version = "0.4", features = ["serde"] }
+dirs           = "5"
+tokio          = { version = "1", features = ["full"] }
+
+[target.'cfg(windows)'.dependencies]
+winreg         = "0.52"
+
+[build-dependencies]
+tauri-build    = { version = "2", features = [] }
+
+[profile.release]
+lto            = true
+strip          = true
+opt-level      = "s"

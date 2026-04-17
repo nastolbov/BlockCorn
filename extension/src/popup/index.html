@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BlockCorn</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0f0f13;
+      --surface:  #1a1a24;
+      --border:   #2e2e40;
+      --accent:   #6c34eb;
+      --text:     #e4e4f0;
+      --muted:    #7c7c9a;
+      --green:    #22c55e;
+      --red:      #ef4444;
+    }
+
+    body {
+      width: 300px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      padding: 16px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .logo { font-size: 22px; }
+    .title { font-weight: 700; font-size: 1.1rem; }
+    .subtitle { font-size: 0.75rem; color: var(--muted); }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+
+    .status-label { font-weight: 600; }
+    .status-sub { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .toggle input { display: none; }
+    .toggle-track {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      background: var(--border);
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .toggle input:checked + .toggle-track { background: var(--accent); }
+    .toggle-thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      transition: left .2s;
+      pointer-events: none;
+    }
+    .toggle input:checked ~ .toggle-thumb { left: 23px; }
+
+    .indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+    .indicator.on  { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .indicator.off { background: var(--red); }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 12px 0;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    button {
+      flex: 1;
+      padding: 9px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: color .15s, border-color .15s;
+    }
+    button:hover { color: var(--text); border-color: var(--accent); }
+
+    #footer { font-size: 0.72rem; color: var(--muted); margin-top: 12px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span class="logo">🌽</span>
+    <div>
+      <div class="title">BlockCorn</div>
+      <div class="subtitle">Фильтр контента</div>
+    </div>
+  </div>
+
+  <div class="status-row">
+    <div>
+      <div class="status-label">
+        <span class="indicator" id="indicator"></span>
+        <span id="status-text">Загрузка...</span>
+      </div>
+      <div class="status-sub" id="status-sub"></div>
+    </div>
+    <label class="toggle">
+      <input type="checkbox" id="toggle-enabled" />
+      <div class="toggle-track"></div>
+      <div class="toggle-thumb"></div>
+    </label>
+  </div>
+
+  <hr class="divider" />
+
+  <div class="action-row">
+    <button id="btn-refresh">↻ Обновить список</button>
+    <button id="btn-settings">⚙ Настройки</button>
+  </div>
+
+  <div id="footer"></div>
+
+  <script type="module" src="./popup.ts"></script>
+</body>
+</html>

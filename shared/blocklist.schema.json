@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BlockCorn Config",
+  "type": "object",
+  "required": ["version", "blocklist"],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "description": "Schema version"
+    },
+    "blocklist": {
+      "type": "array",
+      "items": { "type": "string", "format": "hostname" },
+      "description": "Base domains to block (no www prefix)"
+    },
+    "settings": {
+      "type": "object",
+      "properties": {
+        "strictness": {
+          "type": "string",
+          "enum": ["strict", "medium", "light"],
+          "default": "strict"
+        },
+        "whitelist": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "image_classification": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable nsfwjs image scanning (Этап 4)"
+        }
+      }
+    }
+  }
+}

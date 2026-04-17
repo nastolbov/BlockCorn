@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Доступ заблокирован — BlockCorn</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0f0f13;
+      --surface:  #1a1a24;
+      --border:   #2e2e40;
+      --accent:   #6c34eb;
+      --accent-h: #8b5cf6;
+      --text:     #e4e4f0;
+      --muted:    #7c7c9a;
+      --danger:   #ef4444;
+      --radius:   16px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 48px 40px;
+      max-width: 520px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .shield {
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-h));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 28px;
+      font-size: 32px;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .domain {
+      display: inline-block;
+      background: rgba(239,68,68,.15);
+      color: var(--danger);
+      border: 1px solid rgba(239,68,68,.3);
+      border-radius: 8px;
+      padding: 4px 12px;
+      font-size: 0.9rem;
+      font-family: monospace;
+      margin-bottom: 24px;
+    }
+
+    .quote {
+      background: rgba(108, 52, 235, .12);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin-bottom: 32px;
+      font-style: italic;
+      color: var(--text);
+      text-align: left;
+      line-height: 1.6;
+    }
+
+    .quote cite {
+      display: block;
+      margin-top: 8px;
+      font-style: normal;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    button {
+      padding: 12px 24px;
+      border-radius: 10px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s, transform .1s;
+    }
+    button:active { transform: scale(.97); }
+    button:hover { opacity: .88; }
+
+    .btn-back {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-request {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .btn-request:hover { color: var(--text); border-color: var(--accent); }
+
+    .footer {
+      margin-top: 32px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="shield">🌽</div>
+    <h1>Доступ заблокирован</h1>
+    <div class="domain" id="domain-label">—</div>
+
+    <blockquote class="quote" id="quote-text">
+      Загрузка...
+    </blockquote>
+
+    <div class="actions">
+      <button class="btn-back" onclick="history.back()">← Назад</button>
+      <button class="btn-request" id="btn-request">Запросить разблокировку</button>
+    </div>
+
+    <p class="footer" id="footer-status"></p>
+  </div>
+
+  <script type="module">
+    const QUOTES = [
+      { text: 'Дисциплина — это мост между целями и достижениями.', author: 'Джим Рон' },
+      { text: 'Сила не в том, чтобы никогда не сдаваться, а в том, чтобы не останавливаться, когда трудно.', author: '' },
+      { text: 'Ты строишь себя каждым выбором, который делаешь прямо сейчас.', author: '' },
+      { text: 'Момент слабости проходит. Сожаление остаётся надолго.', author: '' },
+      { text: 'Контроль над своими желаниями — это и есть свобода.', author: 'Эпиктет' },
+    ]
+
+    // Show blocked domain
+    const params = new URLSearchParams(location.search)
+    const domain = params.get('domain') || 'неизвестный сайт'
+    document.getElementById('domain-label').textContent = domain
+
+    // Random motivational quote
+    const q = QUOTES[Math.floor(Math.random() * QUOTES.length)]
+    const qEl = document.getElementById('quote-text')
+    qEl.innerHTML = `${q.text}${q.author ? `<cite>— ${q.author}</cite>` : ''}`
+
+    // Request unlock button
+    document.getElementById('btn-request').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-request')
+      btn.disabled = true
+      btn.textContent = 'Отправляем запрос...'
+
+      try {
+        const resp = await chrome.runtime.sendMessage({ type: 'REQUEST_UNLOCK', domain })
+        if (resp?.ok) {
+          btn.textContent = 'Запрос отправлен ✓'
+          document.getElementById('footer-status').textContent =
+            'Разблокировка возможна через 24 часа после подтверждения PIN'
+        }
+      } catch {
+        btn.textContent = 'Ошибка — попробуйте позже'
+      }
+    })
+  </script>
+</body>
+</html>

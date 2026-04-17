@@ -1,0 +1,28 @@
+# Node
+node_modules/
+dist/
+.pnp
+.pnp.js
+*.log
+
+# Rust / Cargo
+target/
+**/*.rs.bk
+Cargo.lock
+
+# Tauri
+desktop/src-tauri/target/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Env
+.env
+.env.local
