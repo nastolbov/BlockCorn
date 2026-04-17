@@ -1,0 +1,5 @@
+// Root build — shared config for JVM modules (:core, :desktop)
+subprojects {
+    group   = 'com.blockcorn'
+    version = '0.1.0'
+}

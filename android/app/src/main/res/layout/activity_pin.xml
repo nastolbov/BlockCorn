@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="32dp"
+    android:background="#0F0F13">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Установите PIN"
+        android:textColor="#E4E4F0"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="PIN потребуется для отключения фильтра\nпосле 24-часовой задержки"
+        android:textColor="#7C7C9A"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:layout_marginBottom="32dp" />
+
+    <EditText
+        android:id="@+id/pinField"
+        android:layout_width="240dp"
+        android:layout_height="52dp"
+        android:hint="PIN (мин. 4 символа)"
+        android:inputType="numberPassword"
+        android:background="@drawable/edit_text_bg"
+        android:padding="12dp"
+        android:textColor="#E4E4F0"
+        android:textColorHint="#7C7C9A"
+        android:layout_marginBottom="12dp" />
+
+    <EditText
+        android:id="@+id/confirmPinField"
+        android:layout_width="240dp"
+        android:layout_height="52dp"
+        android:hint="Подтвердите PIN"
+        android:inputType="numberPassword"
+        android:background="@drawable/edit_text_bg"
+        android:padding="12dp"
+        android:textColor="#E4E4F0"
+        android:textColorHint="#7C7C9A"
+        android:layout_marginBottom="24dp" />
+
+    <Button
+        android:id="@+id/savePinBtn"
+        android:layout_width="240dp"
+        android:layout_height="52dp"
+        android:text="Сохранить PIN"
+        android:backgroundTint="#6C34EB"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold" />
+
+</LinearLayout>
