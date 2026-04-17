@@ -34,48 +34,44 @@ public final class Main {
         Runtime.getRuntime().addShutdownHook(new Thread(PidFile::delete, "blockcorn-pid-cleanup"));
 
         AppState state = new AppState();
-
-        // Data/cache directory
         Path dataDir = dataDir();
-
-        // Load blocklist (cached or fetch)
-        System.out.println("[Main] Loading blocklist…");
         BlocklistFetcher fetcher = new BlocklistFetcher(dataDir);
-        List<String> domains = fetcher.getOrFetch();
-        state.setDomains(domains);
-        System.out.println("[Main] Blocklist: " + domains.size() + " domains");
 
-        // Apply hosts file on startup (self-heal)
-        try {
-            Path hostsPath = HostsManager.hostsPath();
-            boolean healed = HostsManager.ensureActive(hostsPath, domains);
-            if (healed) System.out.println("[Main] Hosts file was missing BlockCorn section — restored");
-        } catch (Exception e) {
-            System.err.println("[Main] Could not apply hosts: " + e.getMessage());
-            // Continue — may need admin privileges
-        }
-
-        // Start watchdog
-        new Watchdog(state).start();
-
-        // Schedule daily blocklist refresh
-        new Thread(() -> dailyRefreshLoop(fetcher, state), "blockcorn-refresh").start();
-
-        // Start tray + main window on AWT thread
+        // Open window immediately — don't wait for network
         SwingUtilities.invokeLater(() -> {
             TrayApp tray = null;
             try {
                 if (SystemTray.isSupported()) {
                     tray = new TrayApp(state);
                     tray.init();
-                    System.out.println("[Main] System tray ready");
                 }
             } catch (Exception e) {
                 System.err.println("[Main] Tray init failed: " + e.getMessage());
             }
-            // Always open main window so the user has a visible UI
             SettingsUI.show(state, tray);
         });
+
+        // Load blocklist in background — apply hosts once ready
+        final TrayApp[] trayRef = { null };
+        new Thread(() -> {
+            System.out.println("[Main] Loading blocklist…");
+            List<String> domains = fetcher.getOrFetch();
+            state.setDomains(domains);
+            System.out.println("[Main] Blocklist: " + domains.size() + " domains");
+            try {
+                Path hostsPath = HostsManager.hostsPath();
+                boolean healed = HostsManager.ensureActive(hostsPath, domains);
+                if (healed) System.out.println("[Main] Hosts restored");
+            } catch (Exception e) {
+                System.err.println("[Main] Could not apply hosts: " + e.getMessage());
+            }
+        }, "blockcorn-init").start();
+
+        // Start watchdog
+        new Watchdog(state).start();
+
+        // Daily refresh
+        new Thread(() -> dailyRefreshLoop(fetcher, state), "blockcorn-refresh").start();
     }
 
     private static void dailyRefreshLoop(BlocklistFetcher fetcher, AppState state) {
