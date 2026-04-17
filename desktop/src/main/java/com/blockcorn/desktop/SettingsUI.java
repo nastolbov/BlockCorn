@@ -1,13 +1,10 @@
 package com.blockcorn.desktop;
 
-import com.blockcorn.core.DelayState;
 import com.blockcorn.core.PinManager;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.prefs.BackingStoreException;
 
@@ -220,7 +217,7 @@ public final class SettingsUI {
     private static void handleToggle(AppState state, TrayApp tray,
                                      JButton btn, JLabel statusLbl) {
         if (state.isEnabled()) {
-            initiateDisable(state, tray, btn, statusLbl);
+            doDisable(state, tray, btn, statusLbl);
         } else {
             doEnable(state, tray, btn, statusLbl);
         }
@@ -228,75 +225,72 @@ public final class SettingsUI {
 
     private static void doEnable(AppState state, TrayApp tray,
                                   JButton btn, JLabel statusLbl) {
-        try {
-            HostsManager.applyBlocklist(HostsManager.hostsPath(), state.getDomains());
-            state.setEnabled(true);
-            styleToggleBtn(btn, true);
-            btn.setText("Выключить фильтр");
-            statusLbl.setText("● Фильтр активен");
-            statusLbl.setForeground(GREEN);
-            if (tray != null) tray.refreshMenu();
-        } catch (IOException e) {
+        if (!state.isDomainsReady()) {
             JOptionPane.showMessageDialog(null,
-                "Не удалось изменить hosts файл: " + e.getMessage(),
-                "Ошибка", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    private static void initiateDisable(AppState state, TrayApp tray,
-                                         JButton btn, JLabel statusLbl) {
-        DelayState pending = DelayStore.read();
-
-        if (pending != null && !pending.isExpired()) {
-            long hours = pending.secondsRemaining() / 3600;
-            long mins  = (pending.secondsRemaining() % 3600) / 60;
-            JOptionPane.showMessageDialog(null,
-                "Запрос уже отправлен.\nОсталось: %dч %dмин.".formatted(hours, mins),
+                "Список доменов ещё загружается.\nПодождите несколько секунд и попробуйте снова.",
                 "BlockCorn", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
-
-        if (pending != null && pending.isExpired()) {
-            // Delay elapsed — require PIN
-            String pin = JOptionPane.showInputDialog(null,
-                "Введите PIN для отключения фильтра:", "BlockCorn — PIN", JOptionPane.PLAIN_MESSAGE);
-            if (pin == null) return;
-            String hash = PinStore.loadHash();
-            if (hash == null || !PinManager.verify(pin, hash)) {
-                JOptionPane.showMessageDialog(null, "Неверный PIN", "Ошибка", JOptionPane.ERROR_MESSAGE);
-                return;
+        btn.setEnabled(false);
+        btn.setText("Применяется…");
+        new Thread(() -> {
+            String err = null;
+            try {
+                HostsManager.applyBlocklist(HostsManager.hostsPath(), state.getDomains());
+                state.setEnabled(true);
+            } catch (IOException e) {
+                err = e.getMessage();
             }
-            doDisable(state, tray, btn, statusLbl);
-            return;
-        }
-
-        // No pending request — start 24h countdown
-        DelayState s = new DelayState();
-        DelayStore.write(s);
-        java.time.Instant deadline = s.getRequestedAt()
-            .plus(DelayState.DELAY_HOURS, java.time.temporal.ChronoUnit.HOURS);
-        JOptionPane.showMessageDialog(null,
-            "Запрос принят.\nОтключение станет доступно:\n" + deadline
-            + "\nПосле этого потребуется ввести PIN.",
-            "BlockCorn", JOptionPane.INFORMATION_MESSAGE);
+            final String error = err;
+            SwingUtilities.invokeLater(() -> {
+                btn.setEnabled(true);
+                if (error == null) {
+                    styleToggleBtn(btn, true);
+                    btn.setText("Выключить фильтр");
+                    statusLbl.setText("● Фильтр активен — " + state.getDomains().size() + " доменов");
+                    statusLbl.setForeground(GREEN);
+                    if (tray != null) tray.refreshMenu();
+                } else {
+                    styleToggleBtn(btn, false);
+                    btn.setText("Включить фильтр");
+                    JOptionPane.showMessageDialog(null,
+                        "Не удалось изменить hosts файл:\n" + error,
+                        "Ошибка", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+        }, "blockcorn-enable").start();
     }
 
     private static void doDisable(AppState state, TrayApp tray,
                                    JButton btn, JLabel statusLbl) {
-        try {
-            HostsManager.removeBlocklist(HostsManager.hostsPath());
-            DelayStore.clear();
-            state.setEnabled(false);
-            styleToggleBtn(btn, false);
-            btn.setText("Включить фильтр");
-            statusLbl.setText("○ Фильтр отключён");
-            statusLbl.setForeground(RED);
-            if (tray != null) tray.refreshMenu();
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null,
-                "Не удалось изменить hosts файл: " + e.getMessage(),
-                "Ошибка", JOptionPane.ERROR_MESSAGE);
-        }
+        btn.setEnabled(false);
+        btn.setText("Отключается…");
+        new Thread(() -> {
+            String err = null;
+            try {
+                HostsManager.removeBlocklist(HostsManager.hostsPath());
+                state.setEnabled(false);
+            } catch (IOException e) {
+                err = e.getMessage();
+            }
+            final String error = err;
+            SwingUtilities.invokeLater(() -> {
+                btn.setEnabled(true);
+                if (error == null) {
+                    styleToggleBtn(btn, false);
+                    btn.setText("Включить фильтр");
+                    statusLbl.setText("○ Фильтр отключён");
+                    statusLbl.setForeground(RED);
+                    if (tray != null) tray.refreshMenu();
+                } else {
+                    styleToggleBtn(btn, true);
+                    btn.setText("Выключить фильтр");
+                    JOptionPane.showMessageDialog(null,
+                        "Не удалось изменить hosts файл:\n" + error,
+                        "Ошибка", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+        }, "blockcorn-disable").start();
     }
 
     // ---------------------------------------------------------------- Service helpers
