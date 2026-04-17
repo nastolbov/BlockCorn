@@ -23,12 +23,6 @@ public final class Main {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ignored) {}
 
-        // macOS dock icon hide (tray-only app)
-        String os = System.getProperty("os.name", "").toLowerCase();
-        if (os.contains("mac")) {
-            System.setProperty("apple.awt.UIElement", "true");
-        }
-
         // Write PID so external watchdog can monitor this process
         PidFile.write();
         Runtime.getRuntime().addShutdownHook(new Thread(PidFile::delete, "blockcorn-pid-cleanup"));
@@ -52,7 +46,6 @@ public final class Main {
         });
 
         // Load blocklist in background — apply hosts once ready
-        final TrayApp[] trayRef = { null };
         new Thread(() -> {
             System.out.println("[Main] Loading blocklist…");
             List<String> domains = fetcher.getOrFetch();
