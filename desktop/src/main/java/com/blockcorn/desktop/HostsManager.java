@@ -41,12 +41,42 @@ public final class HostsManager {
         }
         section.append(MARKER_END).append("\n");
 
-        Files.writeString(path, base + section);
+        writePrivileged(path, base + section);
     }
 
     /** Remove the BlockCorn section from the hosts file. */
     public static void removeBlocklist(Path path) throws IOException {
-        Files.writeString(path, stripSection(Files.readString(path)));
+        writePrivileged(path, stripSection(Files.readString(path)));
+    }
+
+    /**
+     * Write content to a root-owned file.
+     * On macOS: uses osascript to show a system password dialog (no sudo needed).
+     * On Windows: direct write (app must be run as Administrator).
+     */
+    private static void writePrivileged(Path path, String content) throws IOException {
+        String os = System.getProperty("os.name", "").toLowerCase();
+        if (os.contains("mac")) {
+            // Write to a temp file, then move it with osascript elevation
+            Path tmp = Files.createTempFile("blockcorn-hosts-", ".txt");
+            Files.writeString(tmp, content);
+            String script = String.format(
+                "do shell script \"cp '%s' '%s'\" with administrator privileges",
+                tmp.toString(), path.toString()
+            );
+            int rc;
+            try {
+                rc = new ProcessBuilder("osascript", "-e", script)
+                    .inheritIO().start().waitFor();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IOException("Прервано ожидание привилегий");
+            }
+            Files.deleteIfExists(tmp);
+            if (rc != 0) throw new IOException("Привилегии отклонены или ошибка записи hosts");
+        } else {
+            Files.writeString(path, content);
+        }
     }
 
     /**
